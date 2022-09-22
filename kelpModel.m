@@ -31,24 +31,31 @@ T_APL = 27774;
 T_AR = 11033;
 U_065 = 0.03;
 K_X = 4;
+Tspan = 5:1:20;
+Nspan = 0.01:0.002:0.022;
+Cspan = 0.01:0.01:0.3;
+%linspace
 
-grossPhotosynthesis(alpha, I_sat, P_1, T_AP, T_R1, T_APL,T_APH, 15)
+%%Moode variables
+% my, B, P_S
 
-function [dA, my, f_area, f_temp, f_photo, ny, dN, J, dC, P, R, E] = ...
-    kelpModelFunction(A_O, alpha, C_min, C_struct, gamma, epsilon, I_sat, J_max, k_A, ...
-    k_dw, k_C, k_N, m_1, m_2, my_max, N_min, N_max, N_struct, P_1, P_2, a_1, a_2, R_1, R_2, ...
-    T_R1, T_R2, T_AP, T_APH, T_APL, T_AR, U_065, K_X, C, T)
-    
-    E = 1 - exp(gamma*(C_min-C));
-    R = R_1 * exp(T_AR/T_R1-T_AR/T);
+%% State vairables
+% state = [A; N; C]
 
+%% Environmental variables
+% T, I, U, X
 
-    f_temp = EffectTemp(T);
-    f_area = m_1 * exp(-(A/A_O)^2)+m_2;
-    my = f_area*f_photo*min([1-N_min/N, 1-C_min/C]);
-    dA = (my-ny)*A;
+%% Biomass variables
+% W_s, W_w, W_d
 
-end
+% Initial state
+% state = [Area;
+%          Nitrogen;
+%          Carbon];
+
+%carbonExudation(C_min, Cspan, gamma);
+
+kelp (N_struct, C_struct, k_A, N_min, C_min, m_1, m_2, A_0, a_1, a_2, epsilon, K_X, N_max, J_max, U_065, R_1, T_AR, T_R1, 0.5, 0.5, 10, gamma)
 
 function f_temp = EffectTemp (T)
     if (T>=-1.8) && (T < 10)
@@ -61,10 +68,6 @@ function f_temp = EffectTemp (T)
         f_temp = 0;
     end
 end
-
-%function B = grossPhotosynthesis (P_1, T_AP, T_R1, T, alpha, I_sat
-
-
 
 function P = grossPhotosynthesis ( alpha, I_sat, P_1, T_AP, T_R1, T_APL,T_APH, T)
     syms B I;
@@ -88,17 +91,32 @@ function P = grossPhotosynthesis ( alpha, I_sat, P_1, T_AP, T_R1, T_APL,T_APH, T
 
 end
 
+function f_photo = influence_growth_rate (a_1, a_2, gamma)
+    f_photo = a_1 * (1+sign(gamma)*abs(gamma)^0.5) + a_2
+end
 
+function E = carbonExudation (C_min, C, gamma)
+    E = 1 - exp(gamma*(C_min - C));
+    plot(E, C);
+end
 
- %   while eps>=1e-5&n<=nmax
+function [state_dot] = kelp (N_struct, C_struct, k_A, N_min, C_min, m_1, m_2, A_0, a_1, a_2, epsilon, K_X, N_max, J_max, U_065, R_1, T_AR, T_R1, U, X, T, gamma)
+    syms C A N;
+    f_area = m_1*exp(-(A/A_0)^2) + m_2;
+    f_temp = EffectTemp(T);
+    lambda = 1;
+    f_photo = a_1*(1+sign(lambda)*abs(lambda)^0.5) + a_2;
+    ny = (10^(-6)*exp(epsilon*A))/(1+10^(-6)*(exp(epsilon*A)-1));
+    J = J_max*(X/(K_X + X))*((N_max-N)/(N_max-N_min))*(1-exp(-U/U_065));
+    P = 0.5;
+    R = R_1 * exp(T_AR/T_R1-T_AR/T);
+    E = 1 - exp(gamma*(C_min-C));
+    my = f_area * f_photo * f_temp * min([1-N_min/N, 1-C_min/C]);
+    state_dot = [(my-ny)*A;
+        k_A^(-1)*J-my*(N+N_struct);
+        k_A^(-1)*(P*(1-E-R)) - (C+C_struct)*my];
+end
 
-  %  for i = 1:10
-   %     B(i+1) = B(i) - P(B(i))/Pd(B(i));
-   %     if (abs(P(B(i+1)))<0.001)
-    %        disp(double(B(B+1)));
-     %       break;
-      %  end
-   % end
 
 
 
