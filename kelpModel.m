@@ -53,11 +53,31 @@ Cspan = 0.01:0.01:0.3;
 %          Nitrogen;
 %          Carbon];
 
-%carbonExudation(C_min, Cspan, gamma);
 
-kelp (N_struct, C_struct, k_A, N_min, C_min, m_1, m_2, A_0, a_1, a_2, epsilon, K_X, N_max, J_max, U_065, R_1, T_AR, T_R1, 0.5, 0.5, 10, gamma)
+%kelp (N_struct, C_struct, k_A, N_min, C_min, m_1, m_2, A_0, epsilon, K_X, N_max, J_max, U_065, R_1, T_AR, T_R1, 0.5, 0.5, 300, gamma);
+%[t, y] = ode45(@(t,y) kelp (N_struct, C_struct, k_A, N_min, C_min, m_1, m_2, A_0, a_1, a_2, epsilon, K_X, N_max, J_max, U_065, R_1, T_AR, T_R1, 0.5, 0.5, 10, gamma), [0 20], state);
+%grossPhotosynthesis( alpha, I_sat, P_1, T_AP, T_R1, T_APL,T_APH, 278, 200)
+%ForwardEuler (N_struct, C_struct, k_A, N_min, C_min, m_1, m_2, A_0, epsilon, K_X, N_max, J_max, U_065, R_1, T_AR, T_R1, gamma);
 
-function f_temp = EffectTemp (T)
+%% Forward Euler
+h = 1;
+NumberIterations = 17520;
+Y = zeros(3, NumberIterations+1);
+A = 0.01;
+C = 0.02;
+N = 0.02;
+Y(:,1) = [A;N;C];
+for n = 1:NumberIterations
+    T = TemperatureDataset.Temperature(n);
+    U = CurrentsDataset.Currentspeed(n);
+    X = NutrientDataset.("Nutrient concentration")(n);
+    I = IrradianceDataset.Irradiance(n); 
+    Y(:, n+1) = Y(:,n) + kelp(N_struct, C_struct, k_A, N_min, C_min, m_1, m_2, A_0, epsilon, K_X, N_max, J_max, U_065, R_1, T_AR, T_R1, gamma, U, X, T, I, N, C, A)*h;
+end
+
+%%
+function f_temp = EffectTemp (T_k)
+    T = T_k - 273.15;
     if (T>=-1.8) && (T < 10)
         f_temp = 0.08*T + 0.2;
     elseif (T>= 10) && (T<= 15)
@@ -69,53 +89,71 @@ function f_temp = EffectTemp (T)
     end
 end
 
-function P = grossPhotosynthesis ( alpha, I_sat, P_1, T_AP, T_R1, T_APL,T_APH, T)
-    syms B I;
+function P = grossPhotosynthesis ( alpha, I_sat, P_1, T_AP, T_R1, T_APL,T_APH, T, I)
+    syms B;
     T_PL = 271;
     T_PH = 296;
-    P_max = (P_1*exp(T_AP/T_R1-T_AP/T))/(1+exp(T_AP/T- T_APL/T_PL) + exp(T_APH/T_PH - T_PH/T))
+    P_max = (P_1*exp(T_AP/T_R1-T_AP/T)) / (1+exp(T_AP/T- T_APL/T_PL) + exp(T_APH/T_PH - T_PH/T));
+
 
     P(B) = (alpha*I_sat) / (log(1+alpha/B)) * (alpha/(alpha+B)) * ((B/(alpha+B))^(B/alpha));
     pretty(P(B));
-    Pd(B) = diff(P(B), B);
+    Pd(B) = diff(P(B));
+    pretty(Pd(B))
     B0 = 1*10^-9;
     nmax = 10;
     B = B0;
+
     for i = 1:nmax
-        B = double(B - P(B)/Pd(B));
+        B_next = B - P(B)/Pd(B);
+        B = B_next;
     end
-
-    P_max2 = double(P(B))
+    
+    P_max2 = double(P(B));
     P_S = (alpha*I_sat)/(log(1+alpha/B));
-    P = P_S * (1-exp(-(alpha*I_sat)/P_S)) * exp(- (B*I_sat)/P_S);
+    P = P_S * (1-exp(-(alpha*I)/P_S)) * exp(- (B*I)/P_S);
 
 end
 
-function f_photo = influence_growth_rate (a_1, a_2, gamma)
-    f_photo = a_1 * (1+sign(gamma)*abs(gamma)^0.5) + a_2
+function my = specificGrowthRate (f_area, f_photo, f_temp, N_min, C_min, N, C)
+   if ((1-N_min/N) <= (1-C_min/C))
+       my = f_area * f_photo * f_temp * (1-N_min/N);
+   else
+       my = f_area * f_photo * f_temp * (1-C_min/C);
+   end 
 end
 
-function E = carbonExudation (C_min, C, gamma)
-    E = 1 - exp(gamma*(C_min - C));
-    plot(E, C);
-end
+function [state_dot] = kelp(N_struct, C_struct, k_A, N_min, C_min, m_1, m_2, A_0, epsilon, K_X, N_max, J_max, U_065, R_1, T_AR, T_R1, gamma, U, X, T, I, N, C, A)
 
-function [state_dot] = kelp (N_struct, C_struct, k_A, N_min, C_min, m_1, m_2, A_0, a_1, a_2, epsilon, K_X, N_max, J_max, U_065, R_1, T_AR, T_R1, U, X, T, gamma)
-    syms C A N;
     f_area = m_1*exp(-(A/A_0)^2) + m_2;
+
     f_temp = EffectTemp(T);
-    lambda = 1;
-    f_photo = a_1*(1+sign(lambda)*abs(lambda)^0.5) + a_2;
+
+    %lambda = 1;
+
+    %f_photo = a_1*(1+sign(lambda)*abs(lambda)^0.5) + a_2;
+    f_photo = 1;
+
     ny = (10^(-6)*exp(epsilon*A))/(1+10^(-6)*(exp(epsilon*A)-1));
+    
     J = J_max*(X/(K_X + X))*((N_max-N)/(N_max-N_min))*(1-exp(-U/U_065));
+
     P = 0.5;
-    R = R_1 * exp(T_AR/T_R1-T_AR/T);
+
+    R = R_1 * exp((T_AR/T_R1)-(T_AR/T));
+
     E = 1 - exp(gamma*(C_min-C));
-    my = f_area * f_photo * f_temp * min([1-N_min/N, 1-C_min/C]);
+
+
+    %my = f_area * f_photo * f_temp * min([1-N_min/N, 1-C_min/C]);
+    %my = f_area * f_photo * f_temp * (1-N_min/N);
+    my = specificGrowthRate(f_area, f_photo, f_temp, N_min, C_min, N, C);
+
     state_dot = [(my-ny)*A;
         k_A^(-1)*J-my*(N+N_struct);
         k_A^(-1)*(P*(1-E-R)) - (C+C_struct)*my];
 end
+
 
 
 
