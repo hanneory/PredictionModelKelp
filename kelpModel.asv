@@ -40,14 +40,14 @@ K_X = 4;
 %% Forward Euler
 h = 1;
 NumberIterations = 17520;
-Y = zeros(3, NumberIterations);
+Y = zeros(3, NumberIterations-1);
+A_lost = zeros(1, NumberIterations-1);
 netCarbonFixed = zeros(1, NumberIterations-1);
-grossFrond = zeros(1, NumberIterations-1);
 A_0 = 0.01;
 C_0 = 0.01;
-N_0 = 0.011;
+N_0 = 0.02;
 Y(:,1) = [A_0;N_0;C_0];
-for n = 1:NumberIterations-1
+for n = 1:NumberIterations
     T = TemperatureDataset.Temperature(n);
     U = CurrentsDataset.Currentspeed(n);
     X = NutrientDataset.("Nutrient concentration")(n);
@@ -56,11 +56,11 @@ for n = 1:NumberIterations-1
     N = Y(2,n);
     C = Y(3,n);
     [state_dot, A_lost, W_s, W_d, W_w, C_total, N_total, my] = kelp(N_struct, C_struct, k_A, k_N, k_C, k_dw, N_min, C_min, m_1, m_2, A_O, epsilon, K_X, N_max, J_max, U_065, R_1, T_AR, T_R1, gamma, alpha, I_sat, P_1, T_AP, T_APL,T_APH, U, X, T, I, N, C, A);
-    %netCarbonFixed(n) = netCarbon(W_s, state_dot(3), n, n+1);
-    %grossFrond(n) = totalGross(my, A, n, n+1);
+    %netCarbonFixed = netCarbon(W_s, state_dot(3), n, n+1);
+    grossFrond = totalGross(my, A, n, n+1);
     Y(:, n+1) = Y(:,n) + state_dot*h;
 end
-X = 1:1:17520;
+X = 1:1:17521;
 figure(1)
 plot(X, Y(1,:));
 
@@ -69,12 +69,6 @@ plot(X, Y(2,:));
 
 figure(3)
 plot(X, Y(3,:));
-% 
-% figure (4)
-% plot(17519, netCarbonFixed);
-% 
-% figure (5)
-% plot(X-1, grossFrond);
 
 %% Net Carbon Fixed
 function C = netCarbon (W_s, dCdt, tmin, tmax)
@@ -109,9 +103,9 @@ function P = grossPhotosynthesis ( alpha, I_sat, P_1, T_AP, T_R1, T_APL,T_APH, T
     syms B;
     T_PL = 271;
     T_PH = 296;
-    P_max = (P_1*exp(T_AP/T_R1-T_AP/T)) / (1+exp(T_APL/T- T_APL/T_PL) + exp(T_APH/T_PH - T_PH/T));
+    P_max = (P_1*exp(T_AP/T_R1-T_AP/T)) / (1+exp(T_AP/T- T_APL/T_PL) + exp(T_APH/T_PH - T_PH/T));
 
-    fun = @(B) - (alpha*I_sat) / (log(1+alpha/B)) * (alpha/(alpha+B)) * ((B/(alpha+B))^(B/alpha)) - P_max;
+    fun = @(B) - (alpha*I_sat) / (log(1+alpha/B)) * (alpha/(alpha+B)) * ((B/(alpha+B))^(B/alpha));
     B_0 = 10^(-9);
     B = fminsearch(fun, B_0);
     
@@ -142,6 +136,7 @@ function [state_dot, A_lost, W_s, W_d, W_w, C_total, N_total, my] = kelp(N_struc
     
     J = J_max* (X/(K_X + X)) * ((N_max-N)/(N_max-N_min)) * (1-exp(-U/U_065));
 
+    %P = 0.5;
     P = grossPhotosynthesis(alpha, I_sat, P_1, T_AP, T_R1, T_APL,T_APH, T, I);
 
     R = R_1 * exp((T_AR/T_R1)-(T_AR/T));
