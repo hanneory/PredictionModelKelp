@@ -38,43 +38,44 @@ K_X = 4;
 %          Carbon];
 
 %% Forward Euler
+We = Envdata.time;
+
 h = 1;
-NumberIterations = 17520;
+NumberIterations = numColsTime;
 Y = zeros(3, NumberIterations);
 netCarbonFixed = zeros(1, NumberIterations-1);
 grossFrond = zeros(1, NumberIterations-1);
 A_0 = 0.01;
 C_0 = 0.01;
-N_0 = 0.011;
+N_0 = 0.008;
 Y(:,1) = [A_0;N_0;C_0];
-for n = 1:NumberIterations-1
-    T = TemperatureDataset.Temperature(n);
-    U = CurrentsDataset.Currentspeed(n);
-    X = NutrientDataset.("Nutrient concentration")(n);
-    I = IrradianceDataset.Irradiance(n); 
+for n = 1:(NumberIterations-1)
+    T = Envdata.T(:,:,1,n) + 272.15;
+    U = 1;
+    X = Envdata.NO3(:,:,1,n);
+    I = Envdata.PAR(:,:,1,n);
     A = Y(1,n);
     N = Y(2,n);
     C = Y(3,n);
     [state_dot, A_lost, W_s, W_d, W_w, C_total, N_total, my] = kelp(N_struct, C_struct, k_A, k_N, k_C, k_dw, N_min, C_min, m_1, m_2, A_O, epsilon, K_X, N_max, J_max, U_065, R_1, T_AR, T_R1, gamma, alpha, I_sat, P_1, T_AP, T_APL,T_APH, U, X, T, I, N, C, A);
-    %netCarbonFixed(n) = netCarbon(W_s, state_dot(3), n, n+1);
-    %grossFrond(n) = totalGross(my, A, n, n+1);
+    netCarbonFixed(n+1) = netCarbon(W_s, state_dot(3), n, n+1) + netCarbonFixed(n);
+    grossFrond(n+1) = totalGross(my, A, n, n+1) + grossFrond(n);
     Y(:, n+1) = Y(:,n) + state_dot*h;
 end
-X = 1:1:17520;
 figure(1)
-plot(X, Y(1,:));
+plot(time, Y(1,:));
 
 figure(2)
-plot(X, Y(2,:));
+plot(time, Y(2,:));
 
 figure(3)
-plot(X, Y(3,:));
-% 
-% figure (4)
-% plot(17519, netCarbonFixed);
-% 
-% figure (5)
-% plot(X-1, grossFrond);
+plot(time, Y(3,:));
+
+figure (4)
+plot(time, netCarbonFixed);
+ 
+figure (5)
+plot(time, grossFrond);
 
 %% Net Carbon Fixed
 function C = netCarbon (W_s, dCdt, tmin, tmax)
@@ -131,41 +132,67 @@ end
 %% Model
 function [state_dot, A_lost, W_s, W_d, W_w, C_total, N_total, my] = kelp(N_struct, C_struct, k_A, k_N, k_C, k_dw, N_min, C_min, m_1, m_2, A_O, epsilon, K_X, N_max, J_max, U_065, R_1, T_AR, T_R1, gamma, alpha, I_sat, P_1, T_AP, T_APL,T_APH, U, X, T, I, N, C, A)
 
+    % Effect of size on growth rate
     f_area = m_1*exp(-(A/A_O)^2) + m_2;
 
+    %Effect of temperature on growth rate
     f_temp = EffectTemp(T);
 
+    % Seasonal influence on growth rate
     %f_photo = a_1*(1+sign(lambda)*abs(lambda)^0.5) + a_2;
     f_photo = 1;
 
+    % Frond erosion
     ny = (10^(-6)*exp(epsilon*A)) / (1+10^(-6)*(exp(epsilon*A)-1));
     
+    % Nitrate uptake rate
     J = J_max* (X/(K_X + X)) * ((N_max-N)/(N_max-N_min)) * (1-exp(-U/U_065));
 
+    % Gross photosynthesis
     P = grossPhotosynthesis(alpha, I_sat, P_1, T_AP, T_R1, T_APL,T_APH, T, I);
 
+    % Temperature dependent respiration
     R = R_1 * exp((T_AR/T_R1)-(T_AR/T));
 
+    % Carbon exudation
     E = 1 - exp(gamma*(C_min-C));
 
+    % Specific growth rate
     my = specificGrowthRate(f_area, f_photo, f_temp, N_min, C_min, N, C);
     
+    % Amount of frond area lost
     A_lost = A*(C_min - C) / C_struct;
 
+    % Structural weight
     W_s = k_A*A;
 
+    % Total dry weight
     W_d = k_A * (1+ k_N*(N-N_min) + N_min + k_C*(C-C_min) + C_min)*A;
 
+    % Total wet weight
     W_w = k_A * (k_dw^(-1) + k_N*(N-N_min) + N_min + k_C*(C-C_min) + C_min)*A;
 
+    % Total carbon content
     C_total = (C + C_struct) * W_s;
 
+    % Total nitrogen content
     N_total = (N + N_struct) * W_s;
 
+    % Rate of change of frond area
+    % Rate of change in nitrogen reserves
+    % Rate of change in carbon reserves
     state_dot = [(my-ny)*A;
         k_A^(-1)*J-my*(N+N_struct);
         k_A^(-1)*(P*(1-E-R)) - (C+C_struct)*my];
+
+    % Total net carbon fixed
+    C_net = netCarbon(W_s, state_dot(3), 0, 15);
+
+    % Total gross frond area
+    A_gross = totalGross(my, A, 0, 15);
+
 end
+
 
 
 

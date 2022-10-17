@@ -4,7 +4,7 @@
 
 
 h = 1;
-N = 17520;
+N = numColsTime;
 initialState = [0; 0; 0];
 %x(1) = initialState;
 y = [0; 0; 0];

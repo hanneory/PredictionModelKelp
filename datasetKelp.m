@@ -1,17 +1,10 @@
 %% Temperature Dataset
-% t1 = datetime(2021,1,1,0,0,0, 'Format','yyyy-MM-dd HH:mm:ss');
-% t2 = datetime(2021,12,31,23,59,0, 'Format','yyyy-MM-dd HH:mm:ss');
-% time = t1:minutes(30):t2;
+t1 = datetime(Envdata.time(1,1),Envdata.time(2,1),Envdata.time(3,1),Envdata.time(4,1),Envdata.time(5,1),Envdata.time(6,1), 'Format','yyyy-MM-dd HH:mm:ss');
+t2 = datetime(Envdata.time(1,end),Envdata.time(2,end),Envdata.time(3,end),Envdata.time(4,end),Envdata.time(5,end),Envdata.time(6,end), 'Format','yyyy-MM-dd HH:mm:ss');
+time = t1:minutes(15):t2;
 % T = randi([278 290], 1, 17520, 'double');
 % N = 1:1:17520;
 % TemperatureDataset = table(N', time', T', 'VariableNames', {'Number', 'Time', 'Temperature'});
-
-size(Envdata.time)
-[numRowsTime, numColsTime] = size(Envdata.time);
-time = [];
-for t = 1:numColsTime
-    time(end+1) = datetime(Envdata.time(1:t), Envdata.time(2:t), Envdata.time(2:t), Envdata.time(3:t))
-end
 
 
 % %% Currents Dataset
