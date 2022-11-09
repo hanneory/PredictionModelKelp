@@ -48,6 +48,11 @@ time = t1:minutes(15):t2;
 
 A_0 = [startareas(:,1); startareas(:,2); startareas(:,3); startareas(:,4); startareas(:,5)];
 [A0_std, A0_mu] = std(A_0(:, 1));
+% for i = 1:Nsample
+%     if A_0(i) > 50 
+%         A_0(i, 1) = 20;
+%     end
+% end
 
 
 %% Statevariable
@@ -64,6 +69,7 @@ X_T = zeros(Nsample, NumberIterations);
 X_U = zeros(Nsample, NumberIterations);
 X_XNO3 = zeros(Nsample, NumberIterations);
 X_I = zeros(Nsample, NumberIterations);
+pert = zeros(Nsample, NumberIterations);
 for n = 1:NumberIterations
     X_T(:, n) = Envdata.T(:,:,2,n) + 273.15;
     X_U(:, n) = 0.06;
@@ -72,7 +78,7 @@ for n = 1:NumberIterations
 end
 
 %% Standard variation and mean
-[T_std, T_mu] = std(X_T(1, :))
+[T_std, T_mu] = std(X_T(1, :));
 [U_std, U_mu] = std(X_U(1, :));
 [NO3_std, NO3_mu] = std(X_XNO3(1, :));
 [I_std, I_mu] = std(X_I(1, :));
@@ -80,31 +86,46 @@ end
 [A_std, A_mu] = std(A_0);
 
 %% Randomize state variable
-% for i = 2:Nsample
-%      for j = 1:NumberIterations-1
-%          X_U(i,j+1) = gaussMarkov(X_U(i,j), 0.2, 15/1440, T_mu*0.1, 0);
-%      end
-% end
 
 for i = 2:Nsample
-   for j = 1:NumberIterations
-       X_T(i,j) = addRandomAddition(X_T(i,j), T_mu*0.1);
-   end
-end
+     for j = 1:NumberIterations
+          pert(i,j+1) = gaussMarkov(pert(i,j), 0.2, 15/1440, 3, 0);
+          X_T(i, j) = X_T(i, j) + pert(i,j);
+      end
+ end
+
+% [pert, X_T] = randomizeStateVariable(X_T, 0.2, 15/1440, T_mu*0.1, 0, Nsample, NumberIterations);
+% function [pert, pertMatrix] = randomizeStateVariable(matrix, beta, dt, sigma, mean, Nsample, NumberIterations)
+% pert = zeros(Nsample, NumberIterations);
+% for i = 2:Nsample
+%      for j = 1:NumberIterations
+%           pert(i,j+1) = gaussMarkov(pert(i,j), beta, dt, sigma, mean);
+%           matrix(i, j) = matrix(i, j) + pert(i,j);
+%           if (matrix(i, j) < 0)
+%               matrix(i, j) = 0;
+%           end
+%       end
+% end
+% pertMatrix = matrix;
+% end
+
+%for i = 2:Nsample
+%   for j = 1:NumberIterations
+%        X_I(i,j) = addRandomAddition(X_I(i,j), I_mu*0.8);
+%   end
+%end
 
 %% Gauss Markov noise
 function x_next = gaussMarkov(x, beta, dt, sigma, mean)
 f = exp(-beta*dt);
 r = randn*sigma + mean;
 x_next = f*x + sqrt(1-f^2)*r;
-if x_next<0
-    x_next = 0;
-end
 end
 
 %% White noise
 function y = addRandomAddition(x, sigma)
-y = x + randn*sigma;
+%y = x + randn*sigma;
+y = x + 2;
 if (y)<0 
     y = 0;
 end
