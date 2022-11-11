@@ -89,7 +89,7 @@ end
 
 for i = 2:Nsample
      for j = 1:NumberIterations
-          pert(i,j+1) = gaussMarkov(pert(i,j), 0.2, 15/1440, 3, 0);
+          pert(i,j+1) = gaussMarkov(pert(i,j), 0.4, 15/1440, 0.5, 0);
           X_T(i, j) = X_T(i, j) + pert(i,j);
       end
  end

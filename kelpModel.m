@@ -10,7 +10,7 @@ C_content = zeros(Nsample, NumberIterations);
 N_content = zeros(Nsample, NumberIterations);
 netCarbonFixed = zeros(Nsample, NumberIterations);
 grossFrond = zeros(Nsample, NumberIterations);
-A_0 = 35;
+A_0 = A0_mu/100;
 N_0 = 0.01;
 C_0 = 0.6;
 Y_A(:,1) = A_0;
@@ -50,30 +50,37 @@ t = tiledlayout(2,2);
 
 figure(1)
 plot(time, Y_A);
+grid on;
 title('Area');
 
 figure(2);
 plot(time, Y_N);
+grid on;
 title('Nitrogen');
 
 figure(3);
 plot(time, Y_C);
+grid on;
 title('Carbon');
 
 figure(4);
 plot(time, C_content);
+grid on;
 title('Carbon content (fraction of dry weight');
 
 figure(5);
 plot(time, N_content);
+grid on;
 title('Nitrogen content (fraction of dry weight');
 
 figure(6);
 plot(time, grossFrond);
+grid on;
 title('Gross Frond area');
 
 figure(7);
 plot(time, netCarbonFixed);
+grid on;
 title('Gross Carbon');
 
 

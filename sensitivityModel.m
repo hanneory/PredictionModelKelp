@@ -89,16 +89,38 @@ end
 
 plot(time, dAdt)
 
+% figure(31)
+% t = tiledlayout(1,3);
+% title(t,'Temperature')
+% xlabel(t,'time')
+% 
+% nexttile
+% plot(time(8275:end), pert(8:10,8275:end-1))
+% grid on;
+% title('Perturbasjon')
+% nexttile
+% plot(time(8275:end), X_T(8:10,8275:end))
+% grid on;
+% title('Temperatur med pertubasjon')
+% nexttile
+% plot(time(8275:end), q(8:10,8275:end))
+% grid on;
+% title('Avvik areal')
+
+figure(31)
 t = tiledlayout(1,3);
 title(t,'Temperature')
 xlabel(t,'time')
 
 nexttile
-plot(time, pert(8:end,1:end-1))
+plot(time, pert(8:10,1:end-1))
+grid on;
 title('Perturbasjon')
 nexttile
-plot(time, X_T(8:end,:))
-title('Tempertatur med pertubasjon')
+plot(time, X_T(8:10,:))
+grid on;
+title('Temperatur med pertubasjon')
 nexttile
-plot(time, q(8:end,:))
+plot(time, q(8:10,:))
+grid on;
 title('Avvik areal')
