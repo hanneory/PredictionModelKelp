@@ -1,4 +1,4 @@
-%% Parameters
+% Parameters
 A_O = 6;
 alpha = 3.75*10^(-5);
 C_min = 0.01;
@@ -7,7 +7,7 @@ gamma = 0.5;
 epsilon = 0.22;
 I_sat = 200;
 J_max = 1.4*10^(-4);
-k_A = 0.6;
+k_A = 0.027;
 k_dw = 0.0785;
 k_C = 2.1213;
 k_N = 2.72;
@@ -32,7 +32,40 @@ T_AR = 11033;
 U_065 = 0.03;
 K_X = 4;
 
-Nsample = 200;
+% A_O = 8; 
+% alpha = 1.204*10^(-5); 
+% C_min = 0.01; 
+% C_struct = 0.20; 
+% gamma = 0.5; 
+% epsilon = 0.22; 
+% I_sat = 90; 
+% J_max = 2.8*10^(-5); 
+% k_A = 0.027;
+% k_dw = 0.0685; 
+% k_C = 2.1213; 
+% k_N = 2.8929; 
+% m_1 = 0.1085; 
+% m_2 = 0.03; 
+% my_max = 0.1823; 
+% N_min = 0.0088; 
+% N_max = 0.0216; 
+% N_struct = 0.0121; 
+% P_1 = 1.44*10^(-3); 
+% P_2 = 1.44*10^(-3); 
+% a_1 = 0.85;
+% a_2 = 0.3;
+% R_1 = 2.2*10^(-4); 
+% R_2 = 5.429*10^(-4); 
+% T_R1 = 285; 
+% T_R2 = 290; 
+% T_AP = 1694.4; 
+% T_APH = 25924; 
+% T_APL = 27774; 
+% T_AR = 6200; 
+% U_065 = 0.03; 
+% K_X = 56; 
+
+Nsample = 10;
 NumberIterations = size(Envdata.time, 2);
 
 %% Temperature Dataset
@@ -56,14 +89,14 @@ A_0 = [startareas(:,1); startareas(:,2); startareas(:,3); startareas(:,4); start
 
 
 %% Statevariable
-X = zeros(4, NumberIterations);
-for n = 1:NumberIterations
-    T = Envdata.T(:,:,2,n) + 273.15;
-    U = 0.06;
-    X_NO3 = Envdata.NO3(:,:,2,n);
-    I = Envdata.PAR(:,:,2,n);
-    X(:, n) = [T U X_NO3 I];
-end
+% X = zeros(4, NumberIterations);
+% for n = 1:NumberIterations
+%     T = Envdata.T(:,:,2,n) + 273.15;
+%     U = 0.06;
+%     X_NO3 = Envdata.NO3(:,:,2,n);
+%     I = Envdata.PAR(:,:,2,n);
+%     X(:, n) = [T U X_NO3 I];
+% end
 
 X_T = zeros(Nsample, NumberIterations);
 X_U = zeros(Nsample, NumberIterations);
@@ -71,7 +104,7 @@ X_XNO3 = zeros(Nsample, NumberIterations);
 X_I = zeros(Nsample, NumberIterations);
 pert = zeros(Nsample, NumberIterations);
 for n = 1:NumberIterations
-    X_T(:, n) = Envdata.T(:,:,2,n) + 273.15;
+    X_T(:, n) = Envdata.T(:,:,2,n) ;
     X_U(:, n) = 0.06;
     X_XNO3(:, n) = Envdata.NO3(:,:,2,n);
     X_I(:, n) = Envdata.PAR(:,:,2,n);
