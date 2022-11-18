@@ -7,7 +7,7 @@ gamma = 0.5;
 epsilon = 0.22;
 I_sat = 200;
 J_max = 1.4*10^(-4);
-k_A = 0.027;
+k_A = 0.03;
 k_dw = 0.0785;
 k_C = 2.1213;
 k_N = 2.72;
@@ -65,7 +65,7 @@ K_X = 4;
 % U_065 = 0.03; 
 % K_X = 56; 
 
-Nsample = 10;
+Nsample = 2;
 NumberIterations = size(Envdata.time, 2);
 
 %% Temperature Dataset

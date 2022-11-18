@@ -1,4 +1,3 @@
-
 h = 15/1440;
 Y_A = zeros(Nsample, NumberIterations);
 Y_N = zeros(Nsample, NumberIterations);
@@ -118,37 +117,17 @@ end
 
 %% Gross photosynthesis
 function P = grossPhotosynthesis ( alpha, I_sat, P_1, T_AP, T_R1, T_APL,T_APH, T, I)
-T_K = T + 274.15;
 T_PL = 271;
 T_PH = 296;
-ek1 = exp(T_APL./T_K - T_APL/T_PL);
-T_APL./T_K - T_APL/T_PL;
-T_APH/T_PH - T_PH./T_K;
-ek2 = exp(T_APH/T_PH - T_PH./T_K);
-o = (P_1.*exp(T_AP/T_R1-T_AP./T_K));
-q =(1+exp(T_APL./T_K - T_APL/T_PL) +  exp(T_APH/T_PH - T_APH./T_K));
-P_max = (P_1.*exp(T_AP/T_R1-T_AP./T_K)) ./ (1+exp(T_APL./T_K - T_APL/T_PL) + exp(T_APH/T_PH - T_APH./T_K));
+P_max = (P_1.*exp(T_AP/T_R1-T_AP./T)) ./ (1+exp(T_APL./T - T_APL/T_PL) + exp(T_APH/T_PH - T_APH./T));
 B_vec = zeros(size(T,1), 1);
 B_0 = 1*10^(-9);
-beta_temp = 1*10^(-9);
-for n = 1:10
-    beta = beta_temp-( ((I_sat * alpha ) / (log(1+alpha/beta_temp)) ...
-* (alpha/( alpha+beta_temp ))*(beta_temp / ( alpha +beta_temp))^(beta_temp/alpha ) - P_max(1))) ...
-/ ((alpha *I_sat*(beta_temp/ ( alpha + beta_temp))^(beta_temp/alpha - 1)*...
-(alpha^2 - beta_temp*(alpha + beta_temp) *( log (beta_temp/( alpha + beta_temp)))^2)) ...
- /((alpha+beta_temp)^3*(log((alpha+beta_temp)/beta_temp))^2));
-    beta_temp = beta;
-end
-beta;
-    
 for i = 1:size(T,1)
-    for n = 1:10
-        fun = @(B) - (alpha*I_sat) / (log(1+alpha/B)) * (alpha/(alpha+B)) * ((B/(alpha+B))^(B/alpha)) - P_max(i);
-        B_new = fminsearch(fun, B_0);
-        B_0 = B_new;
-    end
-    B_vec(i) = B_new * 100;
+    fun = @(B) - (alpha*I_sat) / (log(1+alpha/B)) * (alpha/(alpha+B)) * ((B/(alpha+B))^(B/alpha)) - P_max(i);
+    B_new = fminsearch(fun, B_0);
+    B_vec(i) = B_new;
 end
+B_vec
 P_S = (alpha*I_sat)./(log(1+alpha./B_vec));
 P = P_S .* (1-exp(-(alpha.*I)./P_S)) .* exp(- (B_vec.*I)./P_S);
 end
@@ -157,18 +136,18 @@ end
 function my = specificGrowthRate (f_area, f_photo, f_temp, N_min, C_min, N, C)
 my = zeros(size(N,1), 1);
 for n = 1:size(N,1)
-    if ((1-N_min/N(n)) <= (1-C_min/C(n)))
-        my(n) = f_area(n) * f_photo * f_temp(n) * (1-N_min/N(n));
-    else
-        my(n) = f_area(n) * f_photo * f_temp(n) * (1-C_min/C(n));
-    end
+if ((1-N_min/N(n)) <= (1-C_min/C(n)))
+    my(n) = f_area(n) * f_photo * f_temp(n) * (1-N_min/N(n));
+else
+    my(n) = f_area(n) * f_photo * f_temp(n) * (1-C_min/C(n));
+end
 end
 end
 
 %% Model
 function [A_dot, N_dot, C_dot, W_s, my, C_total, N_total, C_frac, N_frac, ny] = kelp(N_struct, C_struct, k_A, k_N, k_C, k_dw, N_min, C_min, m_1, m_2, A_O, epsilon, K_X, N_max, J_max, U_065, R_1, T_AR, T_R1, gamma, alpha, I_sat, P_1, T_AP, T_APL,T_APH, U, NO3, T, I, N, C, A)
 % Effect of size on growth rate
-f_area = m_1.*exp(-(A./ (A_O) ).^2) + m_2;
+f_area = m_1.*exp(-(A./A_O).^2) + m_2;
 
 %Effect of temperature on growth rate
 f_temp = EffectTemp(T);
@@ -178,14 +157,13 @@ f_temp = EffectTemp(T);
 f_photo = 1.5;
 
 % Frond erosion
-ny = (10^(-6).*exp(epsilon.*A)) ./ (1+10^(-6).*(exp(epsilon.*A)-1));
+ny = (10.^(-6).*exp(epsilon.*A)) ./ (1+10.^(-6).*(exp(epsilon.*A)-1));
 
 % Nitrate uptake rate
-J = J_max.* (NO3./(K_X + NO3)) .* ((N_max-N)./(N_max-N_min)) .* (1-exp(-U./U_065));
+J = J_max.* (NO3./(K_X + NO3)) .* ((N_max-N)./(N_max-N_min)) .* (1-exp(-U/U_065));
 
 % Gross photosynthesis
-P = grossPhotosynthesis(alpha, I_sat, P_1, T_AP, T_R1, T_APL,T_APH, T, I);
-% ER NOKO FEIL I DENNE LIKNINGA
+P = grossPhotosynthesis(alpha, I_sat, P_1, T_AP, T_R1, T_APL,T_APH, T+274.15, I);
 
 % Temperature dependent respiration
 R = R_1 .* exp((T_AR/T_R1)- T_AR./(T+274.15));
@@ -222,7 +200,6 @@ N_frac = N_total ./W_d;
 
 % Rate of change of frond area
 A_dot = (my-ny).*A;
-% NOKO FEIL MED DENNE LIKNINGA
 
 % Rate of change in nitrogen reserves
 N_dot = k_A^(-1)*J-my.*(N+N_struct);
@@ -235,18 +212,14 @@ C_dot = k_A^(-1).*(P.*(1-E)-R) - (C+C_struct).*my;
 
 end
 
-%% KelpModel with values from dataset withour offset
-% for n = 1:(NumberIterations-1)
-%     A = Y(1,n);
-%     N = Y(2,n);
-%     C = Y(3,n);
-%     [state_dot, A_lost, W_s, W_d, W_w, C_total, N_total, my] = kelp(N_struct, C_struct, k_A, k_N, k_C, k_dw, N_min, C_min, m_1, m_2, A_O, epsilon, K_X, N_max, J_max, U_065, R_1, T_AR, T_R1, gamma, alpha, I_sat, P_1, T_AP, T_APL,T_APH, X(2, n), X(3, n), X(1, n), X(4, n), N, C, A);
-% %     netCarbonFixed(n+1) = netCarbon(W_s, state_dot(3), n, n+1) + netCarbonFixed(n);
-% %     grossFrond(n+1) = totalGross(my, A, n, n+1) + grossFrond(n);
-%     Y(:, n+1) = Y(:,n) + state_dot*h;
+%% Alternative way to calculate beta
+
+% beta_temp = 1*10^(-9);
+% for n = 1:10
+%     beta = beta_temp-( ((I_sat * alpha ) / (log(1+alpha/beta_temp)) ...
+% * (alpha/( alpha+beta_temp ))*(beta_temp / ( alpha +beta_temp))^(beta_temp/alpha ) - P_max(1))) ...
+% / ((alpha *I_sat*(beta_temp/ ( alpha + beta_temp))^(beta_temp/alpha - 1)*...
+% (alpha^2 - beta_temp*(alpha + beta_temp) *( log (beta_temp/( alpha + beta_temp)))^2)) ...
+%  /((alpha+beta_temp)^3*(log((alpha+beta_temp)/beta_temp))^2));
+%     beta_temp = beta;
 % end
-
-
-
-
-
