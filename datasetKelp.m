@@ -1,4 +1,4 @@
-% Parameters
+%Parameters
 A_O = 6;
 alpha = 3.75*10^(-5);
 C_min = 0.01;
@@ -21,7 +21,8 @@ P_1 = 1.22*10^(-3);
 P_2 = 1.44*10^(-3);
 a_1 = 0.85;
 a_2 = 0.3;
-R_1 = 2.785*10^(-4);
+R_1 = 2.2*10^(-4); 
+%R_1 = 2.785*10^(-4);
 R_2 = 5.429*10^(-4);
 T_R1 = 285;
 T_R2 = 290;
@@ -46,14 +47,14 @@ K_X = 4;
 % k_N = 2.8929; 
 % m_1 = 0.1085; 
 % m_2 = 0.03; 
-% my_max = 0.1823; 
+% my_max = 0.1823;
 % N_min = 0.0088; 
 % N_max = 0.0216; 
 % N_struct = 0.0121; 
 % P_1 = 1.44*10^(-3); 
 % P_2 = 1.44*10^(-3); 
-% a_1 = 0.85;
-% a_2 = 0.3;
+% a_1 = 0.85; %
+% a_2 = 0.3; %
 % R_1 = 2.2*10^(-4); 
 % R_2 = 5.429*10^(-4); 
 % T_R1 = 285; 
@@ -65,7 +66,7 @@ K_X = 4;
 % U_065 = 0.03; 
 % K_X = 56; 
 
-Nsample = 2;
+Nsample = 200;
 NumberIterations = size(Envdata.time, 2);
 
 %% Temperature Dataset
@@ -122,7 +123,7 @@ end
 
 for i = 2:Nsample
      for j = 1:NumberIterations
-          pert(i,j+1) = gaussMarkov(pert(i,j), 0.4, 15/1440, 0.5, 0);
+          pert(i,j+1) = gaussMarkov(pert(i,j), 0.4, 15/1440, T_mu*0.1, 0);
           X_T(i, j) = X_T(i, j) + pert(i,j);
       end
  end

@@ -13,11 +13,10 @@ A_0 = A0_mu/100;
 N_0 = 0.01;
 C_0 = 0.05;
 Y_A(:,1) = A_0;
-% Y_A(:,1) = 37;
 Y_N(:,1) = N_0;
 Y_C(:,1) = C_0;
 netCarbonFixed(:,1) = C_0;
-grossFrond(:,1) = A0_mu/100;
+grossFrond(:,1) = A_0;
 nu = zeros(Nsample, NumberIterations);
 mu = zeros(Nsample, NumberIterations);
 
@@ -55,36 +54,68 @@ figure(1)
 plot(time, Y_A);
 grid on;
 title('Area');
+ylabel('dm^2');
 
 figure(2);
 plot(time, Y_N);
 grid on;
 title('Nitrogen');
+ylabel('gN(gsw)^{-1}');
 
 figure(3);
 plot(time, Y_C);
 grid on;
 title('Carbon');
+ylabel('gC(gsw)^{-1}');
 
 figure(4);
 plot(time, C_content);
 grid on;
-title('Carbon content (fraction of dry weight');
+title('Carbon content (fraction of dry weight)');
+ylabel('C(gsw)^{-1}');
 
 figure(5);
 plot(time, N_content);
 grid on;
-title('Nitrogen content (fraction of dry weight');
+title('Nitrogen content (fraction of dry weight)');
+ylabel('N(gsw)^{-1}');
 
-figure(6);
-plot(time, grossFrond);
-grid on;
-title('Gross Frond area');
+% figure(8)
+% t = tiledlayout(3,1);
+% title(t,'Carbon')
+% xlabel(t,'time')
+% 
+% nexttile
+% plot(time, Y_A);
+% grid on;
+% title('Area');
+% ylabel('dm^2');
+% 
+% nexttile
+% plot(time, N_content);
+% grid on;
+% title('Nitrogen content (fraction of dry weight)');
+% ylabel('N(gsw)^{-1}');
+% 
+% nexttile;
+% plot(time, C_content);
+% grid on;
+% title('Carbon content (fraction of dry weight)');
+% ylabel('C(gsw)^{-1}');
 
-figure(7);
-plot(time, netCarbonFixed);
-grid on;
-title('Gross Carbon');
+
+
+
+
+% figure(6);
+% plot(time, grossFrond);
+% grid on;
+% title('Gross Frond area');
+
+% figure(7);
+% plot(time, netCarbonFixed);
+% grid on;
+% title('Gross Carbon');
 
 
 
@@ -99,8 +130,7 @@ A_tot = my.*A;
 end
 
 %% Effect of temperature
-function f_temp = EffectTemp (T_k)
-T = T_k;
+function f_temp = EffectTemp (T)
 f_temp = zeros(size(T,1), 1);
 for n = 1:size(T,1)
 if (T(n)>=-1.8) && (T(n) < 10)
@@ -123,11 +153,11 @@ P_max = (P_1.*exp(T_AP/T_R1-T_AP./T)) ./ (1+exp(T_APL./T - T_APL/T_PL) + exp(T_A
 B_vec = zeros(size(T,1), 1);
 B_0 = 1*10^(-9);
 for i = 1:size(T,1)
-    fun = @(B) - (alpha*I_sat) / (log(1+alpha/B)) * (alpha/(alpha+B)) * ((B/(alpha+B))^(B/alpha)) - P_max(i);
+    fun = @(B)  -((alpha*I_sat) / (log(1+alpha/B)) * (alpha/(alpha+B)) * ((B/(alpha+B))^(B/alpha)) - P_max(i));
     B_new = fminsearch(fun, B_0);
-    B_vec(i) = B_new;
+    B_vec(i) = B_new*100;
 end
-B_vec
+B_vec;
 P_S = (alpha*I_sat)./(log(1+alpha./B_vec));
 P = P_S .* (1-exp(-(alpha.*I)./P_S)) .* exp(- (B_vec.*I)./P_S);
 end
@@ -154,13 +184,13 @@ f_temp = EffectTemp(T);
 
 % Seasonal influence on growth rate
 %f_photo = a_1*(1+sign(lambda)*abs(lambda)^0.5) + a_2;
-f_photo = 1.5;
+f_photo = 2;
 
 % Frond erosion
 ny = (10.^(-6).*exp(epsilon.*A)) ./ (1+10.^(-6).*(exp(epsilon.*A)-1));
 
 % Nitrate uptake rate
-J = J_max.* (NO3./(K_X + NO3)) .* ((N_max-N)./(N_max-N_min)) .* (1-exp(-U/U_065));
+J = J_max.* (NO3./(K_X + NO3)) .* ((N_max-N)./(N_max-N_min)) .* (1-exp(-U./U_065));
 
 % Gross photosynthesis
 P = grossPhotosynthesis(alpha, I_sat, P_1, T_AP, T_R1, T_APL,T_APH, T+274.15, I);

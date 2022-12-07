@@ -87,7 +87,15 @@ for i = 2:1:Nsample
     q(i, :) = Y_A(i,:) - Y_A(1,:);
 end
 
-plot(time, dAdt)
+ca = zeros((Nsample-1), NumberIterations);
+for i = 2:1:Nsample
+    ca(i, :) = C_content(i,:) - C_content(1,:);
+end
+
+ni = zeros((Nsample-1), NumberIterations);
+for i = 2:1:Nsample
+    ni(i, :) = N_content(i,:) - N_content(1,:);
+end
 
 % figure(31)
 % t = tiledlayout(1,3);
@@ -108,19 +116,54 @@ plot(time, dAdt)
 % title('Avvik areal')
 
 figure(31)
-t = tiledlayout(1,3);
+t = tiledlayout(1,2);
 title(t,'Temperature')
-xlabel(t,'time')
 
 nexttile
 plot(time, pert(8:10,1:end-1))
 grid on;
-title('Perturbasjon')
-nexttile
-plot(time, X_T(8:10,:))
-grid on;
-title('Temperatur med pertubasjon')
+title('Perturbation')
+ylabel('Degree Celsius')
 nexttile
 plot(time, q(8:10,:))
 grid on;
-title('Avvik areal')
+title('Deviation area')
+ylabel('dm^2')
+
+
+figure(32)
+t = tiledlayout(1,2);
+title(t,'Carbon content (fraction of dry weight)')
+
+nexttile
+plot(time, pert(8:10,1:end-1))
+grid on;
+title('Perturbation')
+ylabel('Degree Celsius')
+nexttile
+plot(time, ca(8:10,:))
+grid on;
+title('Deviation carbon')
+ylabel('C(gsw)^{-1}');
+
+figure(33)
+t = tiledlayout(1,2);
+title(t,'Nitrogen content (fraction of dry weight)')
+
+nexttile
+plot(time, pert(8:10,1:end-1))
+grid on;
+title('Perturbation')
+ylabel('Degree Celsius')
+nexttile
+plot(time, ni(8:10,:))
+grid on;
+title('Deviation nitrogen')
+ylabel('N(gsw)^{-1}');
+
+
+
+
+
+
+

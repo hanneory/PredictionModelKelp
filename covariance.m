@@ -56,7 +56,7 @@ covMatrix = [covAN(1,1) covAN(1,2) covAC(1,2) covAT(1,2) covANO3(1,2) covAI(1,2)
              covAT(2,1) covNT(2,1) covCT(2,1) covAT(2,2) covTNO3(1,2) covTI(1,2) covTU(1,2);
              covANO3(2,1) covNNO3(2,1) covCNO3(2,1) covTNO3(2,1) covANO3(2,2) covNO3I(1,2) covNO3U(1,2);
              covAI(2,1) covNI(2,1) covCI(2,1) covTI(2,1) covNO3I(2,1) covAI(2,2) covIU(1,2);
-             covAU(2,1) covNU(2,1) covCU(2,1) covTU(2,1) covNO3U(2,1) covIU(2,1) covAU(2,2)];
+             covAU(2,1) covNU(2,1) covCU(2,1) covTU(2,1) covNO3U(2,1) covIU(2,1) covAU(2,2)]
 
 corrMatrix = ...
     [corrAN(1,1) corrAN(1,2) corrAC(1,2) corrAT(1,2) corrANO3(1,2) corrAI(1,2) corrAU(1,2);
@@ -65,7 +65,7 @@ corrMatrix = ...
      corrAT(2,1) corrNT(2,1) corrCT(2,1) corrAT(2,2) corrTNO3(1,2) corrTI(1,2) corrTU(1,2);
      corrANO3(2,1) corrNNO3(2,1) corrCNO3(2,1) corrTNO3(2,1) corrANO3(2,2) corrNO3I(1,2) corrNO3U(1,2)
      corrAI(2,1) corrNI(2,1) corrCI(2,1) corrTI(2,1) corrNO3I(2,1) corrAI(2,2) corrIU(1,2);
-     corrAU(2,1) corrNU(2,1) corrCU(2,1) corrTU(2,1) corrNO3U(2,1) corrIU(2,1) corrAU(2,2)];
+     corrAU(2,1) corrNU(2,1) corrCU(2,1) corrTU(2,1) corrNO3U(2,1) corrIU(2,1) corrAU(2,2)]
 
 corrMatrixShort = ...
     [corrAN(1,1) corrAN(1,2) corrAC(1,2);
