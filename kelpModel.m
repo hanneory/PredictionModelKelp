@@ -9,9 +9,6 @@ C_content = zeros(Nsample, NumberIterations);
 N_content = zeros(Nsample, NumberIterations);
 netCarbonFixed = zeros(Nsample, NumberIterations);
 grossFrond = zeros(Nsample, NumberIterations);
-A_0 = A0_mu/100;
-N_0 = 0.01;
-C_0 = 0.05;
 Y_A(:,1) = A_0;
 Y_N(:,1) = N_0;
 Y_C(:,1) = C_0;
@@ -45,78 +42,6 @@ end
 
 C_content(:, end) = C_content(:, end-1);
 N_content(:, end) = N_content(:, end-1);
-
-%% Plots
-
-t = tiledlayout(2,2);
-
-figure(1)
-plot(time, Y_A);
-grid on;
-title('Area');
-ylabel('dm^2');
-
-figure(2);
-plot(time, Y_N);
-grid on;
-title('Nitrogen');
-ylabel('gN(gsw)^{-1}');
-
-figure(3);
-plot(time, Y_C);
-grid on;
-title('Carbon');
-ylabel('gC(gsw)^{-1}');
-
-figure(4);
-plot(time, C_content);
-grid on;
-title('Carbon content (fraction of dry weight)');
-ylabel('C(gsw)^{-1}');
-
-figure(5);
-plot(time, N_content);
-grid on;
-title('Nitrogen content (fraction of dry weight)');
-ylabel('N(gsw)^{-1}');
-
-% figure(8)
-% t = tiledlayout(3,1);
-% title(t,'Carbon')
-% xlabel(t,'time')
-% 
-% nexttile
-% plot(time, Y_A);
-% grid on;
-% title('Area');
-% ylabel('dm^2');
-% 
-% nexttile
-% plot(time, N_content);
-% grid on;
-% title('Nitrogen content (fraction of dry weight)');
-% ylabel('N(gsw)^{-1}');
-% 
-% nexttile;
-% plot(time, C_content);
-% grid on;
-% title('Carbon content (fraction of dry weight)');
-% ylabel('C(gsw)^{-1}');
-
-
-
-
-
-% figure(6);
-% plot(time, grossFrond);
-% grid on;
-% title('Gross Frond area');
-
-% figure(7);
-% plot(time, netCarbonFixed);
-% grid on;
-% title('Gross Carbon');
-
 
 
 %% Net Carbon Fixed
